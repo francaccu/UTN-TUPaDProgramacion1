@@ -1,89 +1,138 @@
-"""
-Trabajo práctico: Sistema de Gestión de Biblioteca (POO + SQLite).
-
-Las clases y funciones están definidas en archivos independientes.
-Este archivo las importa y ejecuta la prueba integral del ejercicio 4.
-
-Base teórica: Guia_acceso_datos_Python.pdf:
-  - Secciones 1 y 2, página 1: sqlite3, conexión, cursor y tablas.
-  - Sección 3, páginas 2 y 3: INSERT, SELECT, UPDATE y DELETE.
-  - Sección 4, página 3: manejo y cierre de conexiones.
-El modelado POO, la clave foránea y el JOIN completan las consignas
-del archivo tp_grupal_accesodatos.pdf, ejercicios 1 a 4.
-"""
-
 from actualizar_titulo_libro import actualizar_titulo_libro
 from autor import Autor
 from eliminar_libro import eliminar_libro
 from inicializar_bd import inicializar_bd
 from libro import Libro
+from listar_autores import listar_autores
 from listar_libros import listar_libros
 from registrar_autor import registrar_autor
 from registrar_libro import registrar_libro
 
 
-if __name__ == "__main__":
-    # Paso 1: crear el esquema sin borrar datos existentes.
+def pedir_texto(mensaje):
+    """Solicita un texto y no permite que quede vacío."""
+    while True:
+        valor = input(mensaje).strip()
+        if valor:
+            return valor
+        print("El dato no puede estar vacío.")
+
+
+def pedir_entero(mensaje):
+    """Solicita un número entero hasta que el usuario ingrese uno válido."""
+    while True:
+        try:
+            return int(input(mensaje))
+        except ValueError:
+            print("Debe ingresar un número entero.")
+
+
+def mostrar_autores():
+    autores = listar_autores()
+    if not autores:
+        print("No hay autores registrados.")
+        return []
+
+    print("\nAutores registrados:")
+    for autor in autores:
+        print(f"ID: {autor.id_autor} | {autor}")
+    return autores
+
+
+def mostrar_libros():
+    libros = listar_libros()
+    if not libros:
+        print("No hay libros registrados.")
+        return []
+
+    print("\nLibros registrados:")
+    for libro in libros:
+        print(libro)
+    return libros
+
+
+def cargar_autor():
+    nombre = pedir_texto("Nombre del autor: ")
+    nacionalidad = pedir_texto("Nacionalidad: ")
+    id_autor = registrar_autor(nombre, nacionalidad)
+    autor = Autor(id_autor, nombre, nacionalidad)
+    print(f"Autor registrado correctamente: ID {autor.id_autor} - {autor}")
+
+
+def cargar_libro():
+    autores = mostrar_autores()
+    if not autores:
+        print("Primero debe registrar un autor.")
+        return
+
+    ids_validos = {autor.id_autor for autor in autores}
+    titulo = pedir_texto("Título del libro: ")
+    anio = pedir_entero("Año de publicación: ")
+    autor_id = pedir_entero("ID del autor: ")
+    while autor_id not in ids_validos:
+        print("No existe un autor con ese ID.")
+        autor_id = pedir_entero("ID del autor: ")
+
+    id_libro = registrar_libro(titulo, anio, autor_id)
+    autor = next(autor for autor in autores if autor.id_autor == autor_id)
+    libro = Libro(id_libro, titulo, anio, autor)
+    print(f"Libro registrado correctamente: {libro}")
+
+
+def modificar_libro():
+    if not mostrar_libros():
+        return
+    id_libro = pedir_entero("ID del libro que desea modificar: ")
+    nuevo_titulo = pedir_texto("Nuevo título: ")
+    if actualizar_titulo_libro(id_libro, nuevo_titulo):
+        print("Título actualizado correctamente.")
+    else:
+        print("No existe un libro con ese ID.")
+
+
+def borrar_libro():
+    if not mostrar_libros():
+        return
+    id_libro = pedir_entero("ID del libro que desea eliminar: ")
+    if eliminar_libro(id_libro):
+        print("Libro eliminado correctamente.")
+    else:
+        print("No existe un libro con ese ID.")
+
+
+def ejecutar_menu():
     inicializar_bd()
-    print("1. Base de datos inicializada.")
+    while True:
+        print("""
+===== SISTEMA DE GESTIÓN DE BIBLIOTECA =====
+1. Registrar autor
+2. Registrar libro
+3. Listar autores
+4. Listar libros
+5. Modificar título de un libro
+6. Eliminar libro
+0. Salir
+""")
+        opcion = input("Seleccione una opción: ").strip()
 
-    # Paso 2: registrar dos autores y tres libros.
-    autor_1 = Autor(
-        registrar_autor("Jorge Luis Borges", "Argentina"),
-        "Jorge Luis Borges",
-        "Argentina",
-    )
-    autor_2 = Autor(
-        registrar_autor("Julio Cortázar", "Argentina"),
-        "Julio Cortázar",
-        "Argentina",
-    )
-    libro_1 = Libro(
-        registrar_libro("Ficciones", 1944, autor_1.id_autor),
-        "Ficciones", 1944, autor_1,
-    )
-    libro_2 = Libro(
-        registrar_libro("El Aleph", 1949, autor_1.id_autor),
-        "El Aleph", 1949, autor_1,
-    )
-    libro_3 = Libro(
-        registrar_libro("Rayuela", 1963, autor_2.id_autor),
-        "Rayuela", 1963, autor_2,
-    )
-    print("\n2. Se registraron estos autores y tres libros:")
-    print(autor_1)
-    print(autor_2)
+        if opcion == "1":
+            cargar_autor()
+        elif opcion == "2":
+            cargar_libro()
+        elif opcion == "3":
+            mostrar_autores()
+        elif opcion == "4":
+            mostrar_libros()
+        elif opcion == "5":
+            modificar_libro()
+        elif opcion == "6":
+            borrar_libro()
+        elif opcion == "0":
+            print("Programa finalizado.")
+            break
+        else:
+            print("Opción inválida. Intente nuevamente.")
 
-    # Paso 3: leer la base con JOIN y mostrar título, año y autor.
-    print("\n3. Listado completo:")
-    for libro in listar_libros():
-        print(libro)
 
-    # Paso 4: actualizar y volver a consultar para verificar persistencia.
-    nuevo_titulo = "Ficciones (título actualizado)"
-    if not actualizar_titulo_libro(libro_1.id_libro, nuevo_titulo):
-        raise RuntimeError("No se encontró el libro que se debía actualizar.")
-
-    libros_actualizados = listar_libros()
-    cambio_verificado = False
-    print("\n4. Listado después de actualizar el título:")
-    for libro in libros_actualizados:
-        print(libro)
-        if libro.id_libro == libro_1.id_libro and libro.titulo == nuevo_titulo:
-            cambio_verificado = True
-    if not cambio_verificado:
-        raise RuntimeError("La consulta no devolvió el título actualizado.")
-    print("Verificación: el nuevo título quedó guardado en la base.")
-
-    # Paso 5: eliminar el tercer libro y comprobar el listado resultante.
-    if not eliminar_libro(libro_3.id_libro):
-        raise RuntimeError("No se encontró el libro que se debía eliminar.")
-
-    print("\n5. Listado después de eliminar Rayuela:")
-    libros_restantes = listar_libros()
-    for libro in libros_restantes:
-        print(libro)
-        if libro.id_libro == libro_3.id_libro:
-            raise RuntimeError("El libro eliminado todavía aparece en la base.")
-    print("Verificación: el libro eliminado ya no aparece en la base.")
-    print("\nPrueba integral completada correctamente.")
+if __name__ == "__main__":
+    ejecutar_menu()
