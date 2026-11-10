@@ -1,0 +1,23 @@
+1. Base de datos inicializada.
+
+2. Se registraron estos autores y tres libros:
+Jorge Luis Borges (Argentina)
+Julio Cortázar (Argentina)
+
+3. Listado completo:
+ID: 1 | Título: Ficciones | Año: 1944 | Autor: Jorge Luis Borges (Argentina)
+ID: 2 | Título: El Aleph | Año: 1949 | Autor: Jorge Luis Borges (Argentina)
+ID: 3 | Título: Rayuela | Año: 1963 | Autor: Julio Cortázar (Argentina)
+
+4. Listado después de actualizar el título:
+ID: 1 | Título: Ficciones (título actualizado) | Año: 1944 | Autor: Jorge Luis Borges (Argentina)
+ID: 2 | Título: El Aleph | Año: 1949 | Autor: Jorge Luis Borges (Argentina)
+ID: 3 | Título: Rayuela | Año: 1963 | Autor: Julio Cortázar (Argentina)
+Verificación: el nuevo título quedó guardado en la base.
+
+5. Listado después de eliminar Rayuela:
+ID: 1 | Título: Ficciones (título actualizado) | Año: 1944 | Autor: Jorge Luis Borges (Argentina)
+ID: 2 | Título: El Aleph | Año: 1949 | Autor: Jorge Luis Borges (Argentina)
+Verificación: el libro eliminado ya no aparece en la base.
+
+Prueba integral completada correctamente.
